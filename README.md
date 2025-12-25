@@ -1,5 +1,6 @@
 # flutter_structure_app
 GetX 企业级完整架构
+'''
 lib/
 ├── main.dart                          # 应用入口
 ├── app.dart                           # 应用主组件
@@ -96,3 +97,4 @@ lib/
     ├── app_pages.dart                 # 页面路由
     ├── app_routes.dart                # 路由定义
     └── route_guards.dart              # 路由守卫
+    '''
