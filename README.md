@@ -1,5 +1,6 @@
 # flutter_structure_app
 GetX 企业级完整架构
+
 lib/
 ├── main.dart                          # 应用入口
 ├── app.dart                           # 应用主组件
