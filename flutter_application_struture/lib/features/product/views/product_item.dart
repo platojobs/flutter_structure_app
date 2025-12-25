@@ -12,7 +12,7 @@ class ProductItem extends StatelessWidget {
   final VoidCallback? onSelect;
 
   const ProductItem({
-    Key? key,
+    super.key,
     required this.product,
     this.onTap,
     this.onAddToCart,
@@ -20,7 +20,7 @@ class ProductItem extends StatelessWidget {
     this.isSelectMode = false,
     this.isSelected = false,
     this.onSelect,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

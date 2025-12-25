@@ -11,7 +11,7 @@ import 'package:get/get.dart';
 class ProductListPage extends StatelessWidget {
   final String? categoryId;
 
-  ProductListPage({this.categoryId, super.key});
+  const ProductListPage({this.categoryId, super.key});
 
   @override
   Widget build(BuildContext context) {

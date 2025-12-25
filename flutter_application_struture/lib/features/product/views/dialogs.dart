@@ -5,7 +5,7 @@ import 'package:get/get.dart';
 class SearchDialog extends StatefulWidget {
   final Function(String keyword)? onSearch;
 
-  const SearchDialog({Key? key, this.onSearch}) : super(key: key);
+  const SearchDialog({super.key, this.onSearch});
 
   @override
   State<SearchDialog> createState() => _SearchDialogState();
@@ -63,10 +63,10 @@ class FilterDialog extends StatefulWidget {
   final Function(double minRating)? onRatingChanged;
 
   const FilterDialog({
-    Key? key,
+    super.key,
     this.onPriceRangeChanged,
     this.onRatingChanged,
-  }) : super(key: key);
+  });
 
   @override
   State<FilterDialog> createState() => _FilterDialogState();
