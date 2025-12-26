@@ -150,3 +150,176 @@ class LoadingMoreItem extends StatelessWidget {
     );
   }
 }
+
+/// 产品详情加载骨架屏
+class ProductDetailShimmer extends StatelessWidget {
+  const ProductDetailShimmer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: Colors.grey[300]!,
+      highlightColor: Colors.grey[100]!,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 图片轮播骨架
+          SizedBox(
+            height: 300,
+            width: double.infinity,
+            child: Container(
+              color: Colors.white,
+            ),
+          ),
+          
+          // 产品信息骨架
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  height: 24,
+                  width: MediaQuery.of(context).size.width * 0.7,
+                  color: Colors.white,
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  height: 32,
+                  width: MediaQuery.of(context).size.width * 0.4,
+                  color: Colors.white,
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  height: 16,
+                  width: MediaQuery.of(context).size.width * 0.3,
+                  color: Colors.white,
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  height: 16,
+                  width: MediaQuery.of(context).size.width * 0.6,
+                  color: Colors.white,
+                ),
+              ],
+            ),
+          ),
+          
+          // 评价骨架
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  height: 20,
+                  width: 80,
+                  color: Colors.white,
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  height: 60,
+                  width: double.infinity,
+                  color: Colors.white,
+                ),
+              ],
+            ),
+          ),
+          
+          // 规格骨架
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  height: 20,
+                  width: 80,
+                  color: Colors.white,
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  height: 100,
+                  width: double.infinity,
+                  color: Colors.white,
+                ),
+              ],
+            ),
+          ),
+          
+          // 详情骨架
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  height: 20,
+                  width: 80,
+                  color: Colors.white,
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  height: 120,
+                  width: double.infinity,
+                  color: Colors.white,
+                ),
+              ],
+            ),
+          ),
+          
+          // 推荐产品骨架
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  height: 20,
+                  width: 80,
+                  color: Colors.white,
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 200,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: 3,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        width: 140,
+                        margin: const EdgeInsets.only(right: 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              height: 140,
+                              width: 140,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(height: 8),
+                            Container(
+                              height: 16,
+                              width: 120,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(height: 8),
+                            Container(
+                              height: 16,
+                              width: 80,
+                              color: Colors.white,
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
