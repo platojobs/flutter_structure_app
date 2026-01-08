@@ -1,5 +1,6 @@
 // lib/core/exceptions/exception_handler.dart
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_application_struture/core/exceptions/app_exceptions.dart';
 import 'package:flutter_application_struture/core/utils/logger.dart';
@@ -17,7 +18,7 @@ class ExceptionHandler {
     final exception = ExceptionFactory.create(error);
     
     // 记录异常日志
-    Logger.error('Exception occurred', error: error, stackTrace: stackTrace);
+    AppLogger.instance.error('Exception occurred', error: error, stackTrace: stackTrace);
     
     // 根据异常类型进行处理
     switch (exception.runtimeType) {

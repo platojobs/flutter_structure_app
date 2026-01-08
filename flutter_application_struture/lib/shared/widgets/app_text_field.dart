@@ -71,14 +71,12 @@ class AppTextField extends StatefulWidget {
 class _AppTextFieldState extends State<AppTextField> {
   late TextEditingController _controller;
   late FocusNode _focusNode;
-  bool _hasFocus = false;
 
   @override
   void initState() {
     super.initState();
     _controller = widget.controller ?? TextEditingController(text: widget.initialValue);
     _focusNode = widget.focusNode ?? FocusNode();
-    _focusNode.addListener(_onFocusChange);
   }
 
   @override
@@ -92,18 +90,12 @@ class _AppTextFieldState extends State<AppTextField> {
     super.dispose();
   }
 
-  void _onFocusChange() {
-    setState(() {
-      _hasFocus = _focusNode.hasFocus;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (widget.label != null) ..[
+        if (widget.label != null) ...[
           Row(
             children: [
               Text(
@@ -114,7 +106,7 @@ class _AppTextFieldState extends State<AppTextField> {
                   color: AppColors.textPrimary,
                 ),
               ),
-              if (widget.isRequired) ..[
+              if (widget.isRequired) ...[
                 const SizedBox(width: 4),
                 const Text(
                   '*',

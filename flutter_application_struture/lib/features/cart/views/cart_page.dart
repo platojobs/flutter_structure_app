@@ -3,7 +3,6 @@ import 'package:flutter_application_struture/features/cart/controllers/cart_cont
 import 'package:flutter_application_struture/features/cart/views/cart_item_widget.dart';
 import 'package:flutter_application_struture/features/cart/views/cart_bottom_sheet.dart';
 import 'package:flutter_application_struture/features/cart/views/cart_empty_state.dart';
-import 'package:flutter_application_struture/core/base/base_controller.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:get/get.dart';
 

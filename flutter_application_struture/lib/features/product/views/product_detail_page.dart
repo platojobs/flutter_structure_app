@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_application_struture/domain/entities/product_entity.dart';
 import 'package:flutter_application_struture/features/product/controllers/product_detail_controller.dart';
 import 'package:flutter_application_struture/features/product/views/common_widgets.dart';
 import 'package:flutter_application_struture/features/product/views/product_detail_bottomsheet.dart';
@@ -18,17 +19,20 @@ class ProductDetailPage extends GetView<ProductDetailController> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Obx(() => Text(controller.product.value?.name ?? '商品详情')),
+        title: Obx(() => Text(controller.product?.name ?? '商品详情')),
         actions: [
           IconButton(
-            icon: Obx(() => Icon(
-              controller.product.value?.isFavorite == true 
-                  ? Icons.favorite 
-                  : Icons.favorite_border,
-              color: controller.product.value?.isFavorite == true 
-                  ? Colors.red 
-                  : null,
-            )),
+            icon: Obx(() {
+              final product = controller.product;
+              return Icon(
+                product?.isFavorite == true 
+                    ? Icons.favorite 
+                    : Icons.favorite_border,
+                color: product?.isFavorite == true 
+                    ? Colors.red 
+                    : null,
+              );
+            }),
             onPressed: controller.toggleFavorite,
           ),
           IconButton(
@@ -42,11 +46,11 @@ class ProductDetailPage extends GetView<ProductDetailController> {
         ],
       ),
       body: Obx(() {
-        if (controller.isLoading.value) {
+        if (controller.isLoading) {
           return const ProductDetailShimmer();
         }
 
-        if (controller.product.value == null) {
+        if (controller.product == null) {
           return const ErrorRetryView(
             error: '商品不存在',
             onRetry: null,
@@ -59,7 +63,7 @@ class ProductDetailPage extends GetView<ProductDetailController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildImageGallery(controller),
+                _buildImageSection(controller),
                 _buildProductInfo(controller),
                 _buildRatingAndReviews(controller),
                 _buildSpecifications(controller),
@@ -72,7 +76,9 @@ class ProductDetailPage extends GetView<ProductDetailController> {
         );
       }),
       bottomNavigationBar: Obx(() {
-        if (controller.product.value == null) return null;
+        final product = controller.product;
+        if (product == null) return const SizedBox.shrink();
+        
         
         return Container(
           padding: const EdgeInsets.all(16),
@@ -80,7 +86,7 @@ class ProductDetailPage extends GetView<ProductDetailController> {
             color: Colors.white,
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.1),
+                color: Colors.black.withValues(alpha: 0.1),
                 blurRadius: 4,
                 offset: const Offset(0, -2),
               ),
@@ -90,19 +96,19 @@ class ProductDetailPage extends GetView<ProductDetailController> {
             children: [
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: controller.product.value?.canPurchase == true
+                  onPressed: product.canPurchase
                       ? controller.addToCart
                       : null,
                   icon: const Icon(Icons.shopping_cart),
                   label: Text(
-                    controller.product.value?.stockStatus == StockStatus.outOfStock
+                    product.stockStatus == StockStatus.outOfStock
                         ? '暂时缺货'
-                        : controller.product.value?.canPurchase == true
+                        : product.canPurchase
                             ? '加入购物车'
                             : '暂时无法购买',
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: controller.product.value?.canPurchase == true
+                    backgroundColor: product.canPurchase
                         ? Theme.of(context).primaryColor
                         : Colors.grey,
                     foregroundColor: Colors.white,
@@ -113,13 +119,13 @@ class ProductDetailPage extends GetView<ProductDetailController> {
               const SizedBox(width: 12),
               Expanded(
                 child: ElevatedButton(
-                  onPressed: controller.product.value?.canPurchase == true
+                  onPressed: product.canPurchase
                       ? () => _showBuyNowBottomSheet(context, controller)
                       : null,
-                  child: const Text('立即购买'),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
+                  child: const Text('立即购买'),
                 ),
               ),
             ],
@@ -129,79 +135,59 @@ class ProductDetailPage extends GetView<ProductDetailController> {
     );
   }
 
-  Widget _buildImageGallery(ProductDetailController controller) {
+  Widget _buildImageSection(ProductDetailController controller) {
+    final product = controller.product;
+    if (product == null) return const SizedBox.shrink();
+    
     return SizedBox(
-      height: 300,
-      child: Stack(
-        children: [
-          PageView.builder(
-            itemCount: controller.product.value?.imageUrls.length ?? 0,
-            onPageChanged: controller.setCurrentImageIndex,
-            itemBuilder: (context, index) {
-              final imageUrl = controller.product.value!.imageUrls[index];
-              return GestureDetector(
-                onTap: () => _openImageGallery(context, controller, index),
-                child: Hero(
-                  tag: 'product_image_$index',
+      height: 250,
+      child: PageView.builder(
+        itemCount: product.imageUrls.length,
+        onPageChanged: (index) {
+          // 处理页面切换
+        },
+        itemBuilder: (context, index) {
+          return Stack(
+            children: [
+              Positioned.fill(
+                child: GestureDetector(
+                  onTap: () => _openImageGallery(context, controller, index),
                   child: Image.network(
-                    imageUrl,
+                    product.imageUrls[index],
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.image_not_supported),
+                        color: Colors.grey[300],
+                        child: const Icon(
+                          Icons.image_not_supported,
+                          size: 48,
+                          color: Colors.grey,
+                        ),
+                      );
+                    },
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                              : null,
+                        ),
                       );
                     },
                   ),
                 ),
-              );
-            },
-          ),
-          Positioned(
-            bottom: 16,
-            right: 16,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.6),
-                borderRadius: BorderRadius.circular(12),
               ),
-              child: Obx(() => Text(
-                '${controller.currentImageIndex.value + 1}/${controller.product.value?.imageUrls.length ?? 0}',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                ),
-              )),
-            ),
-          ),
-          if (controller.product.value?.discountPercentage != null)
-            Positioned(
-              top: 16,
-              left: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: Colors.red,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  '-${controller.product.value!.discountPercentage!.toInt()}%',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-            ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
 
   Widget _buildProductInfo(ProductDetailController controller) {
-    final product = controller.product.value!;
+    final product = controller.product;
+    if (product == null) return const SizedBox.shrink();
     
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -291,7 +277,7 @@ class ProductDetailPage extends GetView<ProductDetailController> {
                 ),
               ),
               TextButton(
-                onPressed: () => _showAllReviews(context, controller),
+                onPressed: () => _showAllReviews(controller),
                 child: const Text('查看全部'),
               ),
             ],
@@ -325,8 +311,12 @@ class ProductDetailPage extends GetView<ProductDetailController> {
   }
 
   Widget _buildSpecifications(ProductDetailController controller) {
-    final specifications = controller.product.value?.specifications;
+    final product = controller.product;
+    if (product == null) {
+      return const SizedBox.shrink();
+    }
     
+    final specifications = product.specifications;
     if (specifications == null || specifications.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -376,6 +366,9 @@ class ProductDetailPage extends GetView<ProductDetailController> {
   }
 
   Widget _buildDescription(ProductDetailController controller) {
+    final product = controller.product;
+    if (product == null) return const SizedBox.shrink();
+    
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -393,7 +386,7 @@ class ProductDetailPage extends GetView<ProductDetailController> {
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Text(
-                controller.product.value!.description,
+                product.description,
                 style: const TextStyle(fontSize: 14),
               ),
             ),
@@ -489,11 +482,10 @@ class ProductDetailPage extends GetView<ProductDetailController> {
     );
   }
 
-  void _openImageGallery(
-    BuildContext context,
-    ProductDetailController controller,
-    int initialIndex,
-  ) {
+  void _openImageGallery(BuildContext context, ProductDetailController controller, int initialIndex) {
+    final product = controller.product;
+    if (product == null || product.imageUrls.isEmpty) return;
+    
     Get.to(
       () => Scaffold(
         backgroundColor: Colors.black,
@@ -506,7 +498,7 @@ class ProductDetailPage extends GetView<ProductDetailController> {
             PhotoViewGallery.builder(
               scrollPhysics: const BouncingScrollPhysics(),
               builder: (BuildContext context, int index) {
-                final imageUrl = controller.product.value!.imageUrls[index];
+                final imageUrl = product.imageUrls[index];
                 return PhotoViewGalleryPageOptions(
                   imageProvider: NetworkImage(imageUrl),
                   initialScale: PhotoViewComputedScale.contained,
@@ -515,7 +507,7 @@ class ProductDetailPage extends GetView<ProductDetailController> {
                   ),
                 );
               },
-              itemCount: controller.product.value!.imageUrls.length,
+              itemCount: product.imageUrls.length,
               loadingBuilder: (context, event) => Center(
                 child: SizedBox(
                   width: 20.0,
@@ -523,7 +515,7 @@ class ProductDetailPage extends GetView<ProductDetailController> {
                   child: CircularProgressIndicator(
                     value: event == null
                         ? 0
-                        : event.cumulativeBytesLoaded / event.expectedBytesLoaded!,
+                        : event.cumulativeBytesLoaded / (event.expectedTotalBytes ?? 1),
                     valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
                   ),
                 ),
@@ -531,7 +523,6 @@ class ProductDetailPage extends GetView<ProductDetailController> {
               backgroundDecoration: const BoxDecoration(
                 color: Colors.black,
               ),
-              initialIndex: initialIndex,
             ),
             Positioned(
               bottom: 16,
@@ -539,11 +530,11 @@ class ProductDetailPage extends GetView<ProductDetailController> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.6),
+                  color: Colors.black.withValues(alpha: 0.6),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  '${initialIndex + 1}/${controller.product.value!.imageUrls.length}',
+                  '${initialIndex + 1}/${product.imageUrls.length}',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 12,
@@ -558,9 +549,9 @@ class ProductDetailPage extends GetView<ProductDetailController> {
     );
   }
 
-  void _showMoreOptions(BuildContext context, ProductDetailController controller) {
+  void _showMoreOptions(BuildContext ctx, ProductDetailController controller) {
     showModalBottomSheet(
-      context: context,
+      context: ctx,
       builder: (context) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -597,22 +588,28 @@ class ProductDetailPage extends GetView<ProductDetailController> {
     BuildContext context,
     ProductDetailController controller,
   ) {
-    Get.bottomSheet(
-      ProductDetailBottomSheet(
-        product: controller.product.value!,
-        onConfirm: controller.buyNow,
-      ),
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-    );
+    final product = controller.product;
+    if (product != null) {
+      Get.bottomSheet(
+        ProductDetailBottomSheet(
+          product: product,
+          onConfirm: controller.buyNow,
+        ),
+        backgroundColor: Colors.white,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        ),
+      );
+    }
   }
 
-  void _showAllReviews(BuildContext context, ProductDetailController controller) {
+  void _showAllReviews(ProductDetailController controller) {
     // 导航到评价列表页面
-    Get.toNamed('/product/reviews', arguments: {
-      'productId': controller.product.value!.id,
-    });
+    final productId = controller.product?.id;
+    if (productId != null) {
+      Get.toNamed('/product/reviews', arguments: {
+        'productId': productId,
+      });
+    }
   }
 }

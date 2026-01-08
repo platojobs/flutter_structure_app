@@ -89,11 +89,9 @@ class CartEmptyState extends StatelessWidget {
     // TODO: 跳转到商品列表页面
     // 可以使用 Navigator.popUntil() 返回到主页面
     // 或者 Get.toNamed() 跳转到商品列表
-    print('跳转到商品列表页面');
   }
 
   void _onViewRecommendedPressed(BuildContext context) {
     // TODO: 跳转到推荐商品页面
-    print('跳转到推荐商品页面');
   }
 }

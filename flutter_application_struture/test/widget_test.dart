@@ -7,8 +7,6 @@
 
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:flutter_application_struture/app.dart';
-
 void main() {
   testWidgets('app builds smoke test', (WidgetTester tester) async {
     // simple smoke test placeholder

@@ -42,6 +42,7 @@ class AuthController extends GetxController
   bool get isFirstLaunch => _isFirstLaunch.value;
   UserEntity? get currentUser => _currentUser.value;
   String get authToken => _authToken.value;
+  bool get isLoading => loading;
   RxBool get isAuthenticatedObs => _isAuthenticated;
   RxBool get isFirstLaunchObs => _isFirstLaunch;
   Rx<UserEntity?> get currentUserObs => _currentUser;

@@ -6,7 +6,9 @@ import 'package:flutter_application_struture/features/product/views/common_widge
 import 'package:flutter_application_struture/features/product/views/product_item.dart';
 import 'package:flutter_application_struture/features/product/views/dialogs.dart';
 import 'package:flutter_application_struture/features/product/services/product_service.dart';
+import 'package:flutter_application_struture/features/product/models/product.dart';
 import 'package:get/get.dart';
+import 'package:flutter_application_struture/domain/entities/product_entity.dart';
 
 class ProductListPage extends StatelessWidget {
   final String? categoryId;
@@ -44,7 +46,7 @@ class ProductListPage extends StatelessWidget {
           ),
           body: _buildBody(controller),
           floatingActionButton: Obx(() {
-            if (controller.isSelectMode.value) {
+            if (controller.isSelectMode) {
               return _buildSelectionActions(controller);
             }
             return SizedBox.shrink();
@@ -87,7 +89,7 @@ class ProductListPage extends StatelessWidget {
               delegate: SliverChildBuilderDelegate(
                 (context, index) {
                   if (index == ctrl.dataList.length) {
-                    if (ctrl.canLoadMore.value) {
+                    if (ctrl.canLoadMore) {
                       ctrl.loadMore();
                       return const LoadingMoreItem();
                     }
@@ -95,20 +97,21 @@ class ProductListPage extends StatelessWidget {
                   }
 
                   final product = ctrl.dataList[index];
+                  
                   return Obx(
                     () => ProductItem(
-                      product: product,
+                      product: _createProductItem(product),
                       onTap: () => _openProductDetail(product),
                       onAddToCart: () => ctrl.addToCart(product),
                       onToggleFavorite: () => ctrl.toggleFavorite(product),
-                      isSelectMode: ctrl.isSelectMode.value,
+                      isSelectMode: ctrl.isSelectMode,
                       isSelected: ctrl.selectedItems.contains(product),
                       onSelect: () => ctrl.toggleSelection(product),
                     ),
                   );
                 },
                 childCount:
-                    ctrl.dataList.length + (ctrl.canLoadMore.value ? 1 : 0),
+                    ctrl.dataList.length + (ctrl.canLoadMore ? 1 : 0),
               ),
             ),
           ],
@@ -159,46 +162,79 @@ class ProductListPage extends StatelessWidget {
     );
   }
 
-  void _openProductDetail(dynamic product) {
+  void _openProductDetail(ProductEntity product) {
     // 导航到商品详情页面
     Get.toNamed('/product/detail', arguments: {'id': product.id});
   }
 
-  Future<void> _deleteSelected(ProductController controller) async {
+  // 创建Product对象用于ProductItem显示
+  Product _createProductItem(ProductEntity entity) {
+    return Product(
+      id: entity.id,
+      name: entity.name,
+      description: entity.description,
+      price: entity.price,
+      salePrice: entity.originalPrice,
+      categoryId: entity.category.value,
+      images: entity.imageUrls.isNotEmpty ? entity.imageUrls : [entity.imageUrl ?? ''],
+      rating: entity.rating,
+      reviewCount: entity.reviewCount,
+      stock: entity.stockQuantity,
+      isFavorite: entity.isFavorite,
+      createdAt: entity.createdAt ?? DateTime.now(),
+    );
+  }
+
+  void _deleteSelected(ProductController controller) async {
     if (controller.selectedItems.isEmpty) {
-      controller.showMessage('请先选择商品');
+      controller.showError('请先选择商品');
       return;
     }
 
-    final confirmed = await controller.showConfirm(
-      title: '确认删除',
-      message: '确定要删除选中的${controller.selectedCount}个商品吗？',
+    // 确认删除操作
+    await Get.dialog(
+      AlertDialog(
+        title: const Text('确认删除'),
+        content: Text('确定要删除选中的${controller.selectedCount}个商品吗？'),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('取消'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Get.back();
+              await _performDelete(controller);
+            },
+            child: const Text('确认'),
+          ),
+        ],
+      ),
     );
+  }
 
-    if (confirmed) {
-      await controller.safeExecute<void>(
-        action: () async {
-          // 批量删除逻辑
-          final productService = Get.find<ProductService>();
-          final ids = controller.selectedItems.map((p) => p.id).toList();
-          await productService.deleteMultiple(ids);
+  Future<void> _performDelete(ProductController controller) async {
+    try {
+      // 执行删除逻辑
+      final productService = Get.find<ProductService>();
+      final ids = controller.selectedItems.map((p) => p.id).toList();
+      await productService.deleteMultiple(ids);
 
-          // 更新列表
-          controller.dataList.removeWhere(
-            (p) => controller.selectedItems.contains(p),
-          );
-          controller.selectedItems.clear();
-          controller.isSelectMode.value = false;
-        },
-        loadingText: '删除中...',
-        successText: '删除成功',
+      // 更新列表
+      controller.dataList.removeWhere(
+        (p) => controller.selectedItems.contains(p),
       );
+      controller.selectedItems.clear();
+      controller.toggleSelectMode();
+      controller.showSuccess('删除成功');
+    } catch (e) {
+      controller.showError('删除失败');
     }
   }
 
   Future<void> _shareSelected(ProductController controller) async {
     if (controller.selectedItems.isEmpty) {
-      controller.showMessage('请先选择商品');
+      controller.showError('请先选择商品');
       return;
     }
 
@@ -207,9 +243,9 @@ class ProductListPage extends StatelessWidget {
       await productService.share(product.id);
     }
 
-    controller.showMessage('已分享${controller.selectedCount}个商品');
+    controller.showSuccess('已分享${controller.selectedCount}个商品');
     controller.selectedItems.clear();
-    controller.isSelectMode.value = false;
+    controller.toggleSelectMode();
   }
 }
 

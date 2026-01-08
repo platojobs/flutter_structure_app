@@ -10,7 +10,7 @@ enum BindingLifecycle {
 }
 
 /// 基础 Binding 抽象类
-abstract class BaseBinding implements Bindings {
+abstract class BaseBinding {
   final BindingLifecycle lifecycle;
   final String? tag;
   final bool fenix;
@@ -21,8 +21,8 @@ abstract class BaseBinding implements Bindings {
     this.fenix = false,
   });
   
-  @override
-  void dependencies() {
+  /// 注册依赖
+  void registerDependencies() {
     _registerControllers();
     _registerServices();
     _registerRepositories();

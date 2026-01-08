@@ -19,7 +19,7 @@ class AppLoading extends StatelessWidget {
   Widget build(BuildContext context) {
     if (showBackground) {
       return Container(
-        color: AppColors.background.withOpacity(0.8),
+        color: AppColors.background.withValues(alpha: 0.8),
         child: Center(
           child: _buildLoadingContent(),
         ),
@@ -43,7 +43,7 @@ class AppLoading extends StatelessWidget {
             ),
           ),
         ),
-        if (message != null) ..[
+        if (message != null) ...[
           const SizedBox(height: AppSpacing.md),
           Text(
             message!,
@@ -127,7 +127,7 @@ class AppProgressIndicator extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (showLabel && value != null) ..[
+        if (showLabel && value != null) ...[
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -212,7 +212,7 @@ class AppLoadingOverlay extends StatelessWidget {
         child,
         if (isLoading)
           Container(
-            color: AppColors.background.withOpacity(0.7),
+            color: AppColors.background.withValues(alpha: 0.7),
             child: Center(
               child: AppLoading(
                 message: loadingMessage ?? '加载中...',

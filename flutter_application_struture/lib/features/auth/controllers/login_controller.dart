@@ -3,6 +3,7 @@ import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import '../../../core/mixins/validation_mixin.dart';
 import '../../../core/mixins/loading_mixin.dart';
 import '../../../core/mixins/message_mixin.dart';
+import '../../../core/utils/extensions.dart';
 import '../../../domain/usecases/auth_usecases.dart';
 import '../../../core/exceptions/app_exceptions.dart';
 
@@ -22,6 +23,7 @@ class LoginController extends GetxController
   String get password => _password.value;
   bool get rememberMe => _rememberMe.value;
   bool get obscurePassword => _obscurePassword.value;
+  bool get isLoading => loading;
   RxString get emailObs => _email;
   RxString get passwordObs => _password;
   RxBool get rememberMeObs => _rememberMe;
@@ -192,9 +194,10 @@ class LoginController extends GetxController
     return null;
   }
   
-  String? validatePassword(String? password) {
+  @override
+  String? validatePassword(String? password, {int minLength = 6}) {
     if (password.isNullOrEmpty) return '请输入密码';
-    if (password!.length < 6) return '密码至少6位字符';
+    if (password!.length < minLength) return '密码至少$minLength位字符';
     return null;
   }
 }

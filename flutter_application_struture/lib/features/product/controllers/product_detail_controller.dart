@@ -45,7 +45,7 @@ class ProductDetailController extends GetxController
       _product.value = product;
       
       // 更新缓存
-      await _saveProductToCache(product);
+      await _saveProductToCache(product!);
       
     } catch (e) {
       // 从缓存加载
@@ -53,7 +53,7 @@ class ProductDetailController extends GetxController
       if (cachedProduct != null) {
         _product.value = cachedProduct;
       } else {
-        showMessage('加载商品详情失败', isError: true);
+        showError('加载商品详情失败');
       }
     } finally {
       setLoading(false);
@@ -171,7 +171,7 @@ class ProductDetailController extends GetxController
   // 保存商品到缓存
   Future<void> _saveProductToCache(ProductEntity product) async {
     try {
-      final productJson = product.toJson();
+      // final productJson = product.toJson();
       // 这里应该实现缓存逻辑
       // 例如使用shared_preferences或其他缓存库
     } catch (e) {
@@ -193,7 +193,7 @@ class ProductDetailController extends GetxController
   // 保存推荐商品到缓存
   Future<void> _saveRecommendedProductsToCache(List<ProductEntity> products) async {
     try {
-      final productsJson = products.map((p) => p.toJson()).toList();
+      // final productsJson = products.map((p) => p.toJson()).toList();
       // 这里应该实现缓存逻辑
     } catch (e) {
       // 忽略缓存错误

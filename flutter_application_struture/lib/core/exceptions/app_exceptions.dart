@@ -153,7 +153,7 @@ class ExceptionFactory {
 
   /// 创建自定义异常
   static AppException custom(String message, {String? code, dynamic originalError}) {
-    return AppException(
+    return UnknownException(
       message: message,
       code: code,
       originalError: originalError,

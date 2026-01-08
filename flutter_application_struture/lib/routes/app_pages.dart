@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../features/auth/bindings/auth_binding.dart';
 import '../features/auth/bindings/login_binding.dart';
@@ -7,7 +8,7 @@ import '../features/dashboard/bindings/dashboard_binding.dart';
 import '../features/cart/bindings/cart_binding.dart';
 import '../features/order/bindings/order_binding.dart';
 import '../features/user/bindings/user_binding.dart';
-import '../features/profile/bindings/profile_binding.dart';
+// import '../features/profile/bindings/profile_binding.dart'; // 未使用
 import 'app_routes.dart';
 import 'route_guards.dart';
 
@@ -177,7 +178,7 @@ class AppPages {
     ),
     GetPage(
       name: AppRoutes.orderDetail,
-      page: () => OrderDetailPage(),
+      page: () => const OrderDetailPage(),
       binding: OrderBinding(),
       middlewares: [
         RouteGuard.authGuard(),
@@ -197,22 +198,6 @@ class AppPages {
     GetPage(
       name: AppRoutes.userProfile,
       page: () => const UserProfilePage(),
-      binding: UserBinding(),
-      middlewares: [
-        RouteGuard.authGuard(),
-      ],
-    ),
-    GetPage(
-      name: AppRoutes.userSettings,
-      page: () => const UserSettingsPage(),
-      binding: UserBinding(),
-      middlewares: [
-        RouteGuard.authGuard(),
-      ],
-    ),
-    GetPage(
-      name: AppRoutes.userPreferences,
-      page: () => const UserPreferencesPage(),
       binding: UserBinding(),
       middlewares: [
         RouteGuard.authGuard(),
@@ -261,23 +246,12 @@ class AppPages {
     // 默认重定向到初始页面
     GetPage(
       name: AppRoutes.initial,
-      page: () => const InitialPage(),
+      page: () => InitialPage(),
       binding: InitialBinding(),
       middlewares: [
         RouteGuard.environmentGuard(),
         RouteGuard.versionGuard(),
       ],
-      redirect: (route) {
-        // 动态重定向逻辑
-        final authController = Get.find();
-        if (authController.isFirstLaunch.value) {
-          return AppRoutes.welcome;
-        }
-        if (!authController.isAuthenticated.value) {
-          return AppRoutes.login;
-        }
-        return AppRoutes.dashboard;
-      },
     ),
   ];
 
@@ -307,43 +281,424 @@ class AppPages {
 }
 
 // 页面类定义（需要在对应的features模块中实现）
-class SplashPage {}
-class WelcomePage {}
-class InitialPage {}
-class LoginPage {}
-class RegisterPage {}
-class ForgotPasswordPage {}
-class ResetPasswordPage {}
-class DashboardPage {}
-class HomePage {}
-class ProfilePage {}
-class SettingsPage {}
-class NotificationsPage {}
-class ProductsPage {}
-class ProductListPage {}
-class ProductSearchPage {}
-class ProductCategoryPage {}
-class ProductDetailPage {}
-class CartPage {}
-class CheckoutPage {}
-class OrderConfirmationPage {}
-class OrdersPage {}
-class OrderDetailPage {}
-class OrderHistoryPage {}
-class UserProfilePage {}
-class UserSettingsPage {}
-class UserPreferencesPage {}
-class Error404Page {}
-class Error500Page {}
-class UnauthorizedPage {}
-class AccessDeniedPage {}
-class UpdateRequiredPage {}
-class MaintenancePage {}
+class SplashPage extends StatelessWidget {
+  const SplashPage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('启动页面'),
+      ),
+    );
+  }
+}
+class WelcomePage extends StatelessWidget {
+  const WelcomePage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('欢迎页面'),
+      ),
+    );
+  }
+}
+class InitialPage extends StatelessWidget {
+  const InitialPage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('初始页面'),
+      ),
+    );
+  }
+}
+class LoginPage extends StatelessWidget {
+  const LoginPage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('登录页面'),
+      ),
+    );
+  }
+}
+class RegisterPage extends StatelessWidget {
+  const RegisterPage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('注册页面'),
+      ),
+    );
+  }
+}
+class ForgotPasswordPage extends StatelessWidget {
+  const ForgotPasswordPage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('忘记密码页面'),
+      ),
+    );
+  }
+}
+class ResetPasswordPage extends StatelessWidget {
+  const ResetPasswordPage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('重置密码页面'),
+      ),
+    );
+  }
+}
+class DashboardPage extends StatelessWidget {
+  const DashboardPage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('仪表盘页面'),
+      ),
+    );
+  }
+}
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('首页'),
+      ),
+    );
+  }
+}
+class ProfilePage extends StatelessWidget {
+  const ProfilePage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('个人资料页面'),
+      ),
+    );
+  }
+}
+class SettingsPage extends StatelessWidget {
+  const SettingsPage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('设置页面'),
+      ),
+    );
+  }
+}
+class NotificationsPage extends StatelessWidget {
+  const NotificationsPage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('通知页面'),
+      ),
+    );
+  }
+}
+class ProductsPage extends StatelessWidget {
+  const ProductsPage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('产品页面'),
+      ),
+    );
+  }
+}
+class ProductListPage extends StatelessWidget {
+  const ProductListPage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('产品列表页面'),
+      ),
+    );
+  }
+}
+class ProductSearchPage extends StatelessWidget {
+  const ProductSearchPage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('产品搜索页面'),
+      ),
+    );
+  }
+}
+class ProductCategoryPage extends StatelessWidget {
+  const ProductCategoryPage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('产品分类页面'),
+      ),
+    );
+  }
+}
+class ProductDetailPage extends StatelessWidget {
+  const ProductDetailPage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('产品详情页面'),
+      ),
+    );
+  }
+}
+class CartPage extends StatelessWidget {
+  const CartPage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('购物车页面'),
+      ),
+    );
+  }
+}
+class CheckoutPage extends StatelessWidget {
+  const CheckoutPage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('结账页面'),
+      ),
+    );
+  }
+}
+class OrderConfirmationPage extends StatelessWidget {
+  const OrderConfirmationPage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('订单确认页面'),
+      ),
+    );
+  }
+}
+class OrdersPage extends StatelessWidget {
+  const OrdersPage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('订单页面'),
+      ),
+    );
+  }
+}
+class OrderDetailPage extends StatelessWidget {
+  const OrderDetailPage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('订单详情页面'),
+      ),
+    );
+  }
+}
+class OrderHistoryPage extends StatelessWidget {
+  const OrderHistoryPage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('订单历史页面'),
+      ),
+    );
+  }
+}
+class UserProfilePage extends StatelessWidget {
+  const UserProfilePage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('用户资料页面'),
+      ),
+    );
+  }
+}
+class Error404Page extends StatelessWidget {
+  const Error404Page({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('404 页面未找到'),
+      ),
+    );
+  }
+}
+class Error500Page extends StatelessWidget {
+  const Error500Page({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('500 服务器错误'),
+      ),
+    );
+  }
+}
+class UnauthorizedPage extends StatelessWidget {
+  const UnauthorizedPage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('未授权访问'),
+      ),
+    );
+  }
+}
+class AccessDeniedPage extends StatelessWidget {
+  const AccessDeniedPage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('访问被拒绝'),
+      ),
+    );
+  }
+}
+class UpdateRequiredPage extends StatelessWidget {
+  const UpdateRequiredPage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('需要更新应用'),
+      ),
+    );
+  }
+}
+class MaintenancePage extends StatelessWidget {
+  const MaintenancePage({super.key});
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('系统维护中'),
+      ),
+    );
+  }
+}
 
-// Binding类定义（需要在对应的bindings模块中实现）
-class SplashBinding extends Bindings {}
-class WelcomeBinding extends Bindings {}
-class InitialBinding extends Bindings {}
-class ErrorBinding extends Bindings {}
-class UpdateBinding extends Bindings {}
-class MaintenanceBinding extends Bindings {}
+// Binding 类定义
+class SplashBinding extends Binding {
+  @override
+  List<Bind> dependencies() {
+    return [
+      Bind.lazyPut(() => SplashController()),
+    ];
+  }
+}
+class WelcomeBinding extends Binding {
+  @override
+  List<Bind> dependencies() {
+    return [
+      Bind.lazyPut(() => WelcomeController()),
+    ];
+  }
+}
+class InitialBinding extends Binding {
+  @override
+  List<Bind> dependencies() {
+    return [
+      Bind.lazyPut(() => InitialController()),
+    ];
+  }
+}
+class ErrorBinding extends Binding {
+  @override
+  List<Bind> dependencies() {
+    return [
+      Bind.lazyPut(() => ErrorController()),
+    ];
+  }
+}
+class UpdateBinding extends Binding {
+  @override
+  List<Bind> dependencies() {
+    return [
+      Bind.lazyPut(() => UpdateController()),
+    ];
+  }
+}
+class MaintenanceBinding extends Binding {
+  @override
+  List<Bind> dependencies() {
+    return [
+      Bind.lazyPut(() => MaintenanceController()),
+    ];
+  }
+}
+
+// 临时控制器类定义
+class SplashController extends GetxController {}
+class WelcomeController extends GetxController {}
+class InitialController extends GetxController {}
+class ErrorController extends GetxController {}
+class UpdateController extends GetxController {}
+class MaintenanceController extends GetxController {}
+// 重复的页面类定义已移除
+
+// 临时控制器类定义

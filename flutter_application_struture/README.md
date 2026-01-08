@@ -7,7 +7,7 @@ A new Flutter project.
 
 项目骨架与架构说明（示例模板）
 
-本仓库提供一个结构清晰的 Flutter 应用模板，按分层架构组织：核心层、数据层、领域层、功能模块与共享资源。
+本仓库提供一个结构清晰的 Flutter 应用模板，按 Clean Architecture 分层架构组织：核心层、数据层、领域层、功能模块与共享资源。
 
 **项目结构概览**
 - **`lib/main.dart`**: 应用入口
@@ -15,9 +15,11 @@ A new Flutter project.
 - **`lib/core/`**: 框架核心：基类、混入、DI、配置与工具
 - **`lib/data/`**: 数据与网络（API 客户端、数据源、仓库实现）
 - **`lib/domain/`**: 领域层（实体、用例、仓库接口）
-- **`lib/features/`**: 按功能拆分的模块（例如 `auth`、`product`、`dashboard`）
+- **`lib/features/`**: 按功能拆分的模块（例如 `auth`、`product`、`cart`、`user`）
 - **`lib/shared/`**: 共享组件、样式和常量
 - **`lib/routes/`**: 路由定义与守卫
+- **`assets/`**: 资源文件目录（图片、图标、字体、动画、数据）
+- **`test/`**: 测试目录（单元测试、组件测试、集成测试）
 
 **关键文件示例**
 - `lib/core/di/injector.dart` ([lib/core/di/injector.dart](lib/core/di/injector.dart)): 全局依赖注入入口，使用 `GetIt`。

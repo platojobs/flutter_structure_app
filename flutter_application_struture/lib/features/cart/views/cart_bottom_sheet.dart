@@ -18,7 +18,7 @@ class CartBottomSheet extends StatelessWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -159,7 +159,6 @@ class CartBottomSheet extends StatelessWidget {
     
     // TODO: 跳转到结算页面
     // 可以使用 Get.toNamed() 导航到结算页面
-    print('跳转到结算页面，选中商品ID: ${controller.selectedItems}');
   }
 
   void _onContinueShoppingPressed(BuildContext context) {
