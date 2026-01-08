@@ -159,12 +159,16 @@ class AuthState {
   final bool isAuthenticated;
   final UserEntity? user;
   final String? token;
+  final String? accessToken;
+  final String? refreshToken;
   final DateTime? expiresAt;
 
   const AuthState({
     this.isAuthenticated = false,
     this.user,
     this.token,
+    this.accessToken,
+    this.refreshToken,
     this.expiresAt,
   });
 
@@ -172,12 +176,16 @@ class AuthState {
   factory AuthState.authenticated({
     required UserEntity user,
     required String token,
+    String? accessToken,
+    String? refreshToken,
     required DateTime expiresAt,
   }) {
     return AuthState(
       isAuthenticated: true,
       user: user,
       token: token,
+      accessToken: accessToken ?? token,
+      refreshToken: refreshToken,
       expiresAt: expiresAt,
     );
   }
@@ -207,9 +215,15 @@ class AuthState {
       runtimeType == other.runtimeType && 
       isAuthenticated == other.isAuthenticated &&
       user == other.user &&
-      token == other.token;
+      token == other.token &&
+      accessToken == other.accessToken &&
+      refreshToken == other.refreshToken;
 
   @override
   int get hashCode =>
-      isAuthenticated.hashCode ^ user.hashCode ^ token.hashCode;
+      isAuthenticated.hashCode ^ 
+      user.hashCode ^ 
+      token.hashCode ^ 
+      accessToken.hashCode ^ 
+      refreshToken.hashCode;
 }

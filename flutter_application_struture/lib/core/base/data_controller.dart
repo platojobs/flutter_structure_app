@@ -8,7 +8,7 @@ import 'package:get/get.dart';
 
 /// 泛型数据控制器（带分页、缓存、状态管理）
 abstract class DataController<T> extends BaseController<T> 
-    with LoadingMixin, MessageMixin, ValidationMixin {
+    with OptionalLoadingMixin<T>, MessageMixin, ValidationMixin {
   
   /// 分页状态
   final currentPage = 1.obs;

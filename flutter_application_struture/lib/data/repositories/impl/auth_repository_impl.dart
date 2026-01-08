@@ -1,11 +1,11 @@
-import '../../domain/entities/user_entity.dart';
-import '../../domain/repositories/auth_repository.dart';
-import '../models/user_model.dart';
-import '../datasources/local/local_data_source.dart';
-import '../datasources/remote/remote_data_source.dart';
-import '../datasources/cache/cache_data_source.dart';
-import '../../../core/exceptions/app_exceptions.dart';
-import '../../../core/utils/logger.dart';
+import 'package:flutter_application_struture/domain/entities/user_entity.dart';
+import 'package:flutter_application_struture/domain/repositories/auth_repository.dart';
+import 'package:flutter_application_struture/data/models/user_model.dart';
+import 'package:flutter_application_struture/data/datasources/local/local_data_source.dart';
+import 'package:flutter_application_struture/data/datasources/remote/remote_data_source.dart';
+import 'package:flutter_application_struture/data/datasources/cache/cache_data_source.dart';
+import 'package:flutter_application_struture/core/exceptions/app_exceptions.dart';
+import 'package:flutter_application_struture/core/utils/logger.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final RemoteDataSource _remoteDataSource;
@@ -53,6 +53,7 @@ class AuthRepositoryImpl implements AuthRepository {
         user: userEntity,
         accessToken: accessToken,
         refreshToken: refreshToken,
+        expiresAt: DateTime.now().add(const Duration(hours: 24)), // 默认24小时过期
       );
 
       AppLogger.info('登录成功: ${userEntity.email}');
@@ -93,6 +94,7 @@ class AuthRepositoryImpl implements AuthRepository {
         user: userEntity,
         accessToken: accessToken,
         refreshToken: refreshToken,
+        expiresAt: DateTime.now().add(const Duration(hours: 24)), // 默认24小时过期
       );
 
       AppLogger.info('注册成功: ${userEntity.email}');
@@ -155,26 +157,43 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<String> refreshToken() async {
+  Future<AuthResult> refreshToken(String refreshToken) async {
     try {
-      final refreshToken = await _localDataSource.getString(_refreshTokenKey);
-      if (refreshToken == null || refreshToken.isEmpty) {
+      final storedRefreshToken = await _localDataSource.getString(_refreshTokenKey);
+      final tokenToUse = refreshToken.isNotEmpty ? refreshToken : (storedRefreshToken ?? '');
+      
+      if (tokenToUse.isEmpty) {
         throw AuthException(message: '没有有效的刷新令牌');
       }
 
       final response = await _remoteDataSource.post(
         '/auth/refresh',
-        data: {'refreshToken': refreshToken},
+        data: {'refreshToken': tokenToUse},
       );
 
       final accessToken = response['accessToken'] as String;
-      final newRefreshToken = response['refreshToken'] as String?;
+      final newRefreshToken = response['refreshToken'] as String? ?? tokenToUse;
+      final expiresAt = response['expiresAt'] != null 
+          ? DateTime.parse(response['expiresAt'] as String)
+          : DateTime.now().add(const Duration(hours: 24));
 
-      await _saveAuthTokens(accessToken, newRefreshToken ?? refreshToken);
+      await _saveAuthTokens(accessToken, newRefreshToken);
       _remoteDataSource.setAuthToken(accessToken);
 
+      // 获取用户信息
+      final userResponse = await _remoteDataSource.get('/auth/me');
+      final userModel = UserModel.fromJson(userResponse['user'] as Map<String, dynamic>);
+      final userEntity = userModel.toEntity();
+
+      await _cacheDataSource.cacheObject(_userCacheKey, userModel);
+
       AppLogger.info('令牌刷新成功');
-      return accessToken;
+      return AuthResult(
+        user: userEntity,
+        accessToken: accessToken,
+        refreshToken: newRefreshToken,
+        expiresAt: expiresAt,
+      );
     } catch (e) {
       AppLogger.error('令牌刷新失败: $e');
       await _clearAuthData();
@@ -183,22 +202,11 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
-  @override
-  Future<List<String>> getUserPermissions() async {
-    try {
-      final response = await _remoteDataSource.get('/auth/permissions');
-      final permissions = response['permissions'] as List<dynamic>;
-      return permissions.map((e) => e as String).toList();
-    } catch (e) {
-      AppLogger.error('获取用户权限失败: $e');
-      return [];
-    }
-  }
 
   @override
-  Future<UserEntity> updateProfile(Map<String, dynamic> profileData) async {
+  Future<UserEntity> updateUserProfile(UpdateUserData data) async {
     try {
-      final response = await _remoteDataSource.patch('/auth/profile', data: profileData);
+      final response = await _remoteDataSource.patch('/auth/profile', data: data.toJson());
       final userModel = UserModel.fromJson(response['user'] as Map<String, dynamic>);
       final userEntity = userModel.toEntity();
 
@@ -211,12 +219,9 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<bool> changePassword(String currentPassword, String newPassword) async {
+  Future<bool> changePassword(ChangePasswordData data) async {
     try {
-      await _remoteDataSource.patch('/auth/change-password', data: {
-        'currentPassword': currentPassword,
-        'newPassword': newPassword,
-      });
+      await _remoteDataSource.patch('/auth/change-password', data: data.toJson());
 
       AppLogger.info('密码修改成功');
       return true;
@@ -227,7 +232,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<bool> resetPassword(String email) async {
+  Future<bool> sendPasswordResetEmail(String email) async {
     try {
       await _remoteDataSource.post('/auth/reset-password', data: {
         'email': email,
@@ -242,12 +247,9 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<bool> verifyResetToken(String token, String newPassword) async {
+  Future<bool> resetPassword(ResetPasswordData data) async {
     try {
-      await _remoteDataSource.post('/auth/verify-reset-token', data: {
-        'token': token,
-        'newPassword': newPassword,
-      });
+      await _remoteDataSource.post('/auth/reset-password', data: data.toJson());
 
       AppLogger.info('密码重置验证成功');
       return true;
@@ -276,7 +278,7 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<AuthState?> getAuthState() async {
+  Future<AuthState?> getSavedAuthState() async {
     try {
       final stateJson = await _cacheDataSource.getCachedJson(_authStateKey);
       if (stateJson == null) return null;
@@ -295,6 +297,7 @@ class AuthRepositoryImpl implements AuthRepository {
       return AuthState(
         isAuthenticated: isAuthenticated,
         user: user,
+        token: accessToken,
         accessToken: accessToken,
         refreshToken: refreshToken,
       );
@@ -311,6 +314,150 @@ class AuthRepositoryImpl implements AuthRepository {
       return true;
     } catch (e) {
       AppLogger.error('清除认证状态失败: $e');
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> isEmailExists(String email) async {
+    try {
+      final response = await _remoteDataSource.post('/auth/check-email', data: {'email': email});
+      return response['exists'] as bool? ?? false;
+    } catch (e) {
+      AppLogger.error('检查邮箱是否存在失败: $e');
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> isPhoneExists(String phone) async {
+    try {
+      final response = await _remoteDataSource.post('/auth/check-phone', data: {'phone': phone});
+      return response['exists'] as bool? ?? false;
+    } catch (e) {
+      AppLogger.error('检查手机号是否存在失败: $e');
+      return false;
+    }
+  }
+
+  @override
+  Future<UserEntity> bindThirdPartyAccount(ThirdPartyAccountData data) async {
+    try {
+      final response = await _remoteDataSource.post('/auth/bind-third-party', data: data.toJson());
+      final userModel = UserModel.fromJson(response['user'] as Map<String, dynamic>);
+      final userEntity = userModel.toEntity();
+      await _cacheDataSource.cacheObject(_userCacheKey, userModel);
+      return userEntity;
+    } catch (e) {
+      AppLogger.error('绑定第三方账号失败: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<bool> unbindThirdPartyAccount(String provider) async {
+    try {
+      await _remoteDataSource.post('/auth/unbind-third-party', data: {'provider': provider});
+      AppLogger.info('解绑第三方账号成功: $provider');
+      return true;
+    } catch (e) {
+      AppLogger.error('解绑第三方账号失败: $e');
+      return false;
+    }
+  }
+
+  @override
+  Future<List<LoginHistory>> getLoginHistory({int page = 1, int limit = 10}) async {
+    try {
+      final response = await _remoteDataSource.get('/auth/login-history', queryParameters: {
+        'page': page,
+        'limit': limit,
+      });
+      final histories = response['histories'] as List<dynamic>;
+      return histories.map((json) => LoginHistory.fromJson(json as Map<String, dynamic>)).toList();
+    } catch (e) {
+      AppLogger.error('获取登录历史失败: $e');
+      return [];
+    }
+  }
+
+  @override
+  Future<TwoFactorAuthResult> enableTwoFactorAuth() async {
+    try {
+      final response = await _remoteDataSource.post('/auth/enable-2fa', data: {});
+      return TwoFactorAuthResult.fromJson(response);
+    } catch (e) {
+      AppLogger.error('启用双因子认证失败: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<bool> verifyTwoFactorAuth(String code) async {
+    try {
+      await _remoteDataSource.post('/auth/verify-2fa', data: {'code': code});
+      AppLogger.info('双因子认证验证成功');
+      return true;
+    } catch (e) {
+      AppLogger.error('双因子认证验证失败: $e');
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> disableTwoFactorAuth(String code) async {
+    try {
+      await _remoteDataSource.post('/auth/disable-2fa', data: {'code': code});
+      AppLogger.info('禁用双因子认证成功');
+      return true;
+    } catch (e) {
+      AppLogger.error('禁用双因子认证失败: $e');
+      return false;
+    }
+  }
+
+  @override
+  Future<List<Permission>> getUserPermissions() async {
+    try {
+      final response = await _remoteDataSource.get('/auth/permissions');
+      final permissions = response['permissions'] as List<dynamic>;
+      return permissions.map((json) => Permission.fromJson(json as Map<String, dynamic>)).toList();
+    } catch (e) {
+      AppLogger.error('获取用户权限失败: $e');
+      return [];
+    }
+  }
+
+  @override
+  Future<bool> hasPermission(String permission) async {
+    try {
+      final permissions = await getUserPermissions();
+      return permissions.any((p) => p.id == permission || p.name == permission);
+    } catch (e) {
+      AppLogger.error('检查用户权限失败: $e');
+      return false;
+    }
+  }
+
+  @override
+  Future<List<Role>> getUserRoles() async {
+    try {
+      final response = await _remoteDataSource.get('/auth/roles');
+      final roles = response['roles'] as List<dynamic>;
+      return roles.map((json) => Role.fromJson(json as Map<String, dynamic>)).toList();
+    } catch (e) {
+      AppLogger.error('获取用户角色失败: $e');
+      return [];
+    }
+  }
+
+  @override
+  Future<bool> hasRole(String role) async {
+    try {
+      final roles = await getUserRoles();
+      return roles.any((r) => r.id == role || r.name == role);
+    } catch (e) {
+      AppLogger.error('检查用户角色失败: $e');
       return false;
     }
   }
@@ -337,12 +484,12 @@ extension UserModelExtension on UserModel {
     return UserEntity(
       id: id,
       email: email,
+      phone: phone,
       fullName: fullName,
       avatar: avatar,
-      phone: phone,
       status: UserStatus.values.firstWhere(
         (status) => status.value == this.status,
-        orElse: () => UserStatus.inactive,
+        orElse: () => UserStatus.active,
       ),
       createdAt: createdAt,
       updatedAt: updatedAt,

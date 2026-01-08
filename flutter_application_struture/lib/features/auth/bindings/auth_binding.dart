@@ -1,5 +1,6 @@
-import 'package:get/instance_manager.dart';
+import 'package:get/get.dart';
 import '../controllers/auth_controller.dart';
+import '../controllers/login_controller.dart';
 
 class AuthBinding extends Bindings {
   @override
@@ -7,7 +8,6 @@ class AuthBinding extends Bindings {
     // 认证控制器
     Get.lazyPut<AuthController>(() => AuthController(
       authUseCases: Get.find(),
-      cacheService: Get.find(),
     ));
     
     // 登录控制器（如果需要独立管理）

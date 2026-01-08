@@ -1,7 +1,6 @@
 // lib/core/mixins/cache_mixin.dart
 import 'package:get/get.dart';
 import 'package:flutter_application_struture/core/services/storage_service.dart';
-import 'package:flutter_application_struture/core/utils/extensions.dart';
 
 /// 缓存管理混入
 mixin CacheMixin on GetxController {
@@ -15,73 +14,73 @@ mixin CacheMixin on GetxController {
   /// 缓存字符串数据
   Future<bool> cacheString(String key, String value) async {
     if (_storageService == null) return false;
-    return await _storageService.setString(key, value);
+    return await _storageService!.setString(key, value);
   }
 
   /// 获取缓存的字符串数据
   Future<String?> getCachedString(String key) async {
     if (_storageService == null) return null;
-    return await _storageService.getString(key);
+    return await _storageService!.getString(key);
   }
 
   /// 缓存JSON数据
   Future<bool> cacheJson(String key, Map<String, dynamic> data) async {
     if (_storageService == null) return false;
-    return await _storageService.setJson(key, data);
+    return await _storageService!.setJson(key, data);
   }
 
   /// 获取缓存的JSON数据
   Future<Map<String, dynamic>?> getCachedJson(String key) async {
     if (_storageService == null) return null;
-    return await _storageService.getJson(key);
+    return await _storageService!.getJson(key);
   }
 
   /// 缓存对象数据
   Future<bool> cacheObject<T>(String key, T object) async {
     if (_storageService == null) return false;
-    return await _storageService.setObject(key, object);
+    return await _storageService!.setObject(key, object);
   }
 
   /// 获取缓存的对象数据
   Future<T?> getCachedObject<T>(String key) async {
     if (_storageService == null) return null;
-    return await _storageService.getObject<T>(key);
+    return await _storageService!.getObject<T>(key);
   }
 
   /// 缓存列表数据
   Future<bool> cacheList<T>(String key, List<T> list) async {
     if (_storageService == null) return false;
-    return await _storageService.setList(key, list);
+    return await _storageService!.setList(key, list);
   }
 
   /// 获取缓存的列表数据
   Future<List<T>?> getCachedList<T>(String key) async {
     if (_storageService == null) return null;
-    return await _storageService.getList<T>(key);
+    return await _storageService!.getList<T>(key);
   }
 
   /// 删除缓存
   Future<bool> removeCache(String key) async {
     if (_storageService == null) return false;
-    return await _storageService.remove(key);
+    return await _storageService!.remove(key);
   }
 
   /// 清空所有缓存
   Future<bool> clearCache() async {
     if (_storageService == null) return false;
-    return await _storageService.clear();
+    return await _storageService!.clear();
   }
 
   /// 检查是否存在缓存
   Future<bool> hasCache(String key) async {
     if (_storageService == null) return false;
-    return await _storageService.containsKey(key);
+    return await _storageService!.containsKey(key);
   }
 
   /// 获取所有缓存键
   Future<List<String>> getAllCacheKeys() async {
     if (_storageService == null) return [];
-    return await _storageService.getAllKeys();
+    return await _storageService!.getAllKeys();
   }
 
   /// 缓存用户数据
@@ -234,7 +233,7 @@ mixin CacheManagerMixin on GetxController {
             return cachedData;
           } else {
             // 已过期，删除缓存
-            await removeCache(key);
+            await _storageService!.remove(key);
           }
         }
       }

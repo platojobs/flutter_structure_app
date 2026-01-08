@@ -210,6 +210,6 @@ abstract class BaseController<T> extends GetxController {
   
   void _logError(dynamic error, StackTrace stackTrace) {
     // 使用 AppLogger 记录错误
-    AppLogger.instance.error('Controller Error', error: error, stackTrace: stackTrace);
+    AppLogger.error('Controller Error', error: error, stackTrace: stackTrace);
   }
 }

@@ -18,8 +18,8 @@ class CartApi {
         '$_baseUrl/$userId',
       );
 
-      if (response.statusCode == HttpStatus.ok) {
-        return CartModel.fromJson(response.data);
+      if (response.statusCode == HttpStatus.ok && response.data != null) {
+        return CartModel.fromJson(response.data as Map<String, dynamic>);
       }
       return null;
     } catch (e) {
@@ -35,8 +35,8 @@ class CartApi {
         data: cartItem.toJson(),
       );
 
-      if (response.statusCode == HttpStatus.ok || response.statusCode == HttpStatus.created) {
-        return CartModel.fromJson(response.data);
+      if ((response.statusCode == HttpStatus.ok || response.statusCode == HttpStatus.created) && response.data != null) {
+        return CartModel.fromJson(response.data as Map<String, dynamic>);
       }
       throw Exception('添加购物车项失败');
     } catch (e) {
@@ -52,8 +52,8 @@ class CartApi {
         data: {'quantity': quantity},
       );
 
-      if (response.statusCode == HttpStatus.ok) {
-        return CartModel.fromJson(response.data);
+      if (response.statusCode == HttpStatus.ok && response.data != null) {
+        return CartModel.fromJson(response.data as Map<String, dynamic>);
       }
       throw Exception('更新购物车项失败');
     } catch (e) {
@@ -101,8 +101,8 @@ class CartApi {
         data: {'couponCode': couponCode},
       );
 
-      if (response.statusCode == HttpStatus.ok) {
-        return CartModel.fromJson(response.data);
+      if (response.statusCode == HttpStatus.ok && response.data != null) {
+        return CartModel.fromJson(response.data as Map<String, dynamic>);
       }
       throw Exception('应用优惠码失败');
     } catch (e) {
@@ -117,8 +117,8 @@ class CartApi {
         '$_baseUrl/$userId/coupons',
       );
 
-      if (response.statusCode == HttpStatus.ok) {
-        return CartModel.fromJson(response.data);
+      if (response.statusCode == HttpStatus.ok && response.data != null) {
+        return CartModel.fromJson(response.data as Map<String, dynamic>);
       }
       throw Exception('移除优惠码失败');
     } catch (e) {
@@ -134,8 +134,8 @@ class CartApi {
         data: {'tempCartId': tempCartId},
       );
 
-      if (response.statusCode == HttpStatus.ok) {
-        return CartModel.fromJson(response.data);
+      if (response.statusCode == HttpStatus.ok && response.data != null) {
+        return CartModel.fromJson(response.data as Map<String, dynamic>);
       }
       throw Exception('合并购物车失败');
     } catch (e) {

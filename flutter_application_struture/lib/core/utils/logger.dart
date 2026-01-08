@@ -4,19 +4,24 @@ class AppLogger {
   AppLogger._();
   static final AppLogger instance = AppLogger._();
 
-  void info(String message, {String? tag}) {
+  // 静态方法以便于使用
+  static void info(String message, {String? tag}) {
     developer.log(message, name: tag ?? 'INFO');
   }
 
-  void debug(String message, {String? tag}) {
+  static void debug(String message, {String? tag}) {
     developer.log(message, name: tag ?? 'DEBUG');
   }
 
-  void warn(String message, {String? tag}) {
+  static void warn(String message, {String? tag}) {
     developer.log(message, name: tag ?? 'WARN');
   }
 
-  void error(String message, {Object? error, StackTrace? stackTrace, String? tag}) {
+  static void error(String message, {Object? error, StackTrace? stackTrace, String? tag}) {
     developer.log(message, name: tag ?? 'ERROR', error: error, stackTrace: stackTrace);
+  }
+
+  static void warning(String message, {String? tag}) {
+    developer.log(message, name: tag ?? 'WARN');
   }
 }

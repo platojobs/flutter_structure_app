@@ -16,19 +16,19 @@ mixin ValidationMixin on GetxController {
   /// 清除指定字段的错误
   void clearError(String field) {
     _errors.remove(field);
-    _errors.refresh();
+    update();
   }
 
   /// 清除所有错误
   void clearAllErrors() {
     _errors.clear();
-    _errors.refresh();
+    update();
   }
 
   /// 设置错误信息
   void setError(String field, String message) {
     _errors[field] = message;
-    _errors.refresh();
+    update();
   }
 
   /// 验证单个字段
@@ -47,11 +47,12 @@ mixin ValidationMixin on GetxController {
   }
 
   /// 验证多个字段
-  Map<String, String?> validateFields(Map<String, List<ValidationRule>> validations) {
+  Map<String, String?> validateFields(Map<String, dynamic> fieldValues, Map<String, List<ValidationRule>> validations) {
     final errors = <String, String?>{};
     
     validations.forEach((field, rules) {
-      final error = validateField(field, rules.first.value, rules);
+      final value = fieldValues[field]?.toString() ?? '';
+      final error = validateField(field, value, rules);
       errors[field] = error;
     });
     

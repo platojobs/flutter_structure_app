@@ -280,7 +280,8 @@ enum StockStatus {
   String toString() => value;
 }
 
-/// 产品搜索过滤器
+/// 产品搜索过滤器（在 product_repository.dart 中有更完整的定义）
+// 这里保留基本定义以保持向后兼容
 class ProductFilter {
   final ProductCategory? category;
   final double? minPrice;
@@ -290,6 +291,9 @@ class ProductFilter {
   final bool? inStock;
   final ProductStatus? status;
   final String? searchQuery;
+  final List<String>? brand;
+  final List<String>? colors;
+  final List<String>? sizes;
 
   const ProductFilter({
     this.category,
@@ -300,6 +304,9 @@ class ProductFilter {
     this.inStock,
     this.status,
     this.searchQuery,
+    this.brand,
+    this.colors,
+    this.sizes,
   });
 
   /// 复制过滤器
@@ -312,6 +319,9 @@ class ProductFilter {
     bool? inStock,
     ProductStatus? status,
     String? searchQuery,
+    List<String>? brand,
+    List<String>? colors,
+    List<String>? sizes,
   }) {
     return ProductFilter(
       category: category ?? this.category,
@@ -322,6 +332,9 @@ class ProductFilter {
       inStock: inStock ?? this.inStock,
       status: status ?? this.status,
       searchQuery: searchQuery ?? this.searchQuery,
+      brand: brand ?? this.brand,
+      colors: colors ?? this.colors,
+      sizes: sizes ?? this.sizes,
     );
   }
 
@@ -352,6 +365,15 @@ class ProductFilter {
     }
     if (searchQuery != null) {
       parameters['search'] = searchQuery;
+    }
+    if (brand != null && brand!.isNotEmpty) {
+      parameters['brand'] = brand!.join(',');
+    }
+    if (colors != null && colors!.isNotEmpty) {
+      parameters['colors'] = colors!.join(',');
+    }
+    if (sizes != null && sizes!.isNotEmpty) {
+      parameters['sizes'] = sizes!.join(',');
     }
     
     return parameters;

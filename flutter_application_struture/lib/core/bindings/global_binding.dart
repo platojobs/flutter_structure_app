@@ -15,18 +15,14 @@ final _logger = Logger();
 /// GlobalBinding 用于应用启动时注入全局依赖
 class GlobalBinding extends BaseBinding {
 
-  void register() {
-    _registerControllers();
-    _registerServices();
-    _registerRepositories();
-  }
-
+  @override
   void _registerControllers() {
     // 全局控制器
     Get.put(ThemeController(), permanent: true);
     Get.put(LocalizationController(), permanent: true);
   }
 
+  @override
   void _registerServices() {
     // 全局服务
     Get.put(ApiService(), permanent: true);
@@ -35,6 +31,7 @@ class GlobalBinding extends BaseBinding {
     Get.put(AnalyticsService(), permanent: true);
   }
 
+  @override
   void _registerRepositories() {
     // 全局仓库
     Get.put(UserRepository(), permanent: true);
@@ -44,7 +41,7 @@ class GlobalBinding extends BaseBinding {
   /// 初始化全局依赖
   static Future<void> init() async {
     final binding = GlobalBinding();
-    binding.dependencies();
+    binding.registerDependencies();
 
     // 异步初始化关键服务
     try {

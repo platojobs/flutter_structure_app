@@ -15,6 +15,12 @@ import 'route_guards.dart';
 class AppPages {
   AppPages._();
 
+  // 初始路由
+  static const String initial = AppRoutes.initial;
+
+  // 获取所有路由
+  static List<GetPage> get routes => pages;
+
   // 初始页面 - 可以根据用户状态动态决定
   static final pages = [
     // 启动页面

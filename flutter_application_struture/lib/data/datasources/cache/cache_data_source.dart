@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'local_data_source.dart';
+import '../local/local_data_source.dart';
 
 abstract class CacheDataSource {
   Future<void> cacheJson(String key, Map<String, dynamic> data, {Duration? expiry});

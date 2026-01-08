@@ -5,7 +5,7 @@ class UserModel {
   final String email;
   final String? fullName;
   final String? avatar;
-  final String phone;
+  final String? phone;
   final String status;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -16,7 +16,7 @@ class UserModel {
     required this.email,
     this.fullName,
     this.avatar,
-    required this.phone,
+    this.phone,
     required this.status,
     this.createdAt,
     this.updatedAt,
@@ -29,7 +29,7 @@ class UserModel {
       email: json['email'] as String,
       fullName: json['fullName'] as String?,
       avatar: json['avatar'] as String?,
-      phone: json['phone'] as String,
+      phone: json['phone'] as String?,
       status: json['status'] as String,
       createdAt: json['createdAt'] != null 
           ? DateTime.parse(json['createdAt'] as String)

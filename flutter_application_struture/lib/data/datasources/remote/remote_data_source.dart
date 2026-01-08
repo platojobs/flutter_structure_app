@@ -1,6 +1,5 @@
-import 'dart:io';
 import 'package:dio/dio.dart';
-import '../../../core/exceptions/app_exceptions.dart';
+import '../../../core/exceptions/app_exceptions.dart' show ServerException, NetworkException, ValidationException, AuthException;
 import '../../../core/utils/logger.dart';
 
 abstract class RemoteDataSource {
@@ -10,6 +9,8 @@ abstract class RemoteDataSource {
   Future<Map<String, dynamic>> patch(String endpoint, {Map<String, dynamic>? data});
   Future<Map<String, dynamic>> delete(String endpoint, {Map<String, dynamic>? data});
   Future<void> download(String url, String savePath, {Map<String, dynamic>? queryParameters});
+  void setAuthToken(String token);
+  void removeAuthToken();
 }
 
 class RemoteDataSourceImpl implements RemoteDataSource {
@@ -61,7 +62,7 @@ class RemoteDataSourceImpl implements RemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: '未知错误: $e');
+      throw ServerException(message: '未知错误: $e');
     }
   }
 
@@ -73,7 +74,7 @@ class RemoteDataSourceImpl implements RemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: '未知错误: $e');
+      throw ServerException(message: '未知错误: $e');
     }
   }
 
@@ -85,7 +86,7 @@ class RemoteDataSourceImpl implements RemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: '未知错误: $e');
+      throw ServerException(message: '未知错误: $e');
     }
   }
 
@@ -97,7 +98,7 @@ class RemoteDataSourceImpl implements RemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: '未知错误: $e');
+      throw ServerException(message: '未知错误: $e');
     }
   }
 
@@ -109,7 +110,7 @@ class RemoteDataSourceImpl implements RemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: '未知错误: $e');
+      throw ServerException(message: '未知错误: $e');
     }
   }
 
@@ -120,7 +121,7 @@ class RemoteDataSourceImpl implements RemoteDataSource {
     } on DioException catch (e) {
       throw _handleDioError(e);
     } catch (e) {
-      throw AppException(message: '下载失败: $e');
+      throw ServerException(message: '下载失败: $e');
     }
   }
 
@@ -149,12 +150,12 @@ class RemoteDataSourceImpl implements RemoteDataSource {
         final statusCode = error.response?.statusCode ?? 0;
         return _createHttpException(statusCode, error.response?.data);
       case DioExceptionType.cancel:
-        return AppException(message: '请求已取消');
+        return ServerException(message: '请求已取消');
       case DioExceptionType.connectionError:
         return NetworkException(message: '网络连接错误');
       case DioExceptionType.unknown:
       default:
-        return AppException(message: '未知网络错误');
+        return ServerException(message: '未知网络错误');
     }
   }
 
@@ -177,23 +178,25 @@ class RemoteDataSourceImpl implements RemoteDataSource {
       case 403:
         return AuthException(message: '权限不足');
       case 404:
-        return AppException(message: '资源未找到');
+        return ServerException(message: '资源未找到');
       case 422:
         return ValidationException(message: message);
       case 500:
       case 502:
       case 503:
       case 504:
-        return AppException(message: '服务器错误');
+        return ServerException(message: '服务器错误');
       default:
-        return AppException(message: message);
+        return ServerException(message: message);
     }
   }
 
+  @override
   void setAuthToken(String token) {
     _dio.options.headers['Authorization'] = 'Bearer $token';
   }
 
+  @override
   void removeAuthToken() {
     _dio.options.headers.remove('Authorization');
   }
