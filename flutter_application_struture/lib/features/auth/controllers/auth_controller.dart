@@ -10,6 +10,8 @@ import '../../../core/mixins/message_mixin.dart';
 import '../../../domain/entities/user_entity.dart';
 import '../../../domain/usecases/auth_usecases.dart';
 import '../../../core/exceptions/app_exceptions.dart';
+import '../../../core/utils/extensions.dart';
+import '../../../domain/repositories/auth_repository.dart';
 
 class AuthController extends GetxController 
     with ValidationMixin, CacheMixin, LoadingMixin, MessageMixin {
@@ -88,7 +90,8 @@ class AuthController extends GetxController
       setLoading(true);
       
       // 检查是否首次启动
-      final isFirstLaunch = await getCachedBool('is_first_launch') ?? true;
+      final isFirstLaunchStr = await getCachedString('is_first_launch');
+      final isFirstLaunch = isFirstLaunchStr == null ? true : isFirstLaunchStr == 'false' ? false : true;
       _isFirstLaunch.value = isFirstLaunch;
       
       if (!isFirstLaunch) {
@@ -113,17 +116,15 @@ class AuthController extends GetxController
   Future<bool> login(String email, String password) async {
     try {
       setLoading(true);
-      clearErrors();
+      clearAllErrors();
       
       // 输入验证
       final emailError = validateEmail(email);
       final passwordError = validatePassword(password);
       
       if (emailError != null || passwordError != null) {
-        setErrors({
-          'email': emailError ?? '',
-          'password': passwordError ?? '',
-        });
+        if (emailError != null) setError('email', emailError);
+        if (passwordError != null) setError('password', passwordError);
         return false;
       }
       
@@ -142,10 +143,10 @@ class AuthController extends GetxController
       return true;
       
     } on AppException catch (e) {
-      showMessage(e.message, isError: true);
+      showError(e.message);
       return false;
     } catch (e) {
-      showMessage('登录失败，请重试', isError: true);
+      showError('登录失败，请重试');
       return false;
     } finally {
       setLoading(false);
@@ -162,32 +163,31 @@ class AuthController extends GetxController
   }) async {
     try {
       setLoading(true);
-      clearErrors();
+      clearAllErrors();
       
       // 验证输入
       final emailError = validateEmail(email);
       final passwordError = validatePassword(password);
       final confirmPasswordError = validateConfirmPassword(password, confirmPassword);
-      final fullNameError = validateRequired(fullName, '姓名');
+      final fullNameError = validateRequired(fullName, fieldName: '姓名');
       
-      final errors = <String, String>{};
-      if (emailError != null) errors['email'] = emailError;
-      if (passwordError != null) errors['password'] = passwordError;
-      if (confirmPasswordError != null) errors['confirmPassword'] = confirmPasswordError;
-      if (fullNameError != null) errors['fullName'] = fullNameError;
+      if (emailError != null) setError('email', emailError);
+      if (passwordError != null) setError('password', passwordError);
+      if (confirmPasswordError != null) setError('confirmPassword', confirmPasswordError);
+      if (fullNameError != null) setError('fullName', fullNameError);
       
-      if (errors.isNotEmpty) {
-        setErrors(errors);
+      if (hasError('email') || hasError('password') || hasError('confirmPassword') || hasError('fullName')) {
         return false;
       }
       
       // 执行注册
-      final result = await _authUseCases.register(
+      final registerData = RegisterData(
         email: email,
         password: password,
         fullName: fullName,
         phone: phone,
       );
+      final result = await _authUseCases.register(registerData);
       
       // 更新状态
       _currentUser.value = result.user;
@@ -201,10 +201,10 @@ class AuthController extends GetxController
       return true;
       
     } on AppException catch (e) {
-      showMessage(e.message, isError: true);
+      showError(e.message);
       return false;
     } catch (e) {
-      showMessage('注册失败，请重试', isError: true);
+      showError('注册失败，请重试');
       return false;
     } finally {
       setLoading(false);
@@ -227,7 +227,7 @@ class AuthController extends GetxController
     } catch (e) {
       // 即使服务器清除失败，也要清除本地状态
       _clearAuthState();
-      showMessage('退出登录失败', isError: true);
+      showError('退出登录失败');
     } finally {
       setLoading(false);
     }
@@ -240,19 +240,19 @@ class AuthController extends GetxController
       
       final emailError = validateEmail(email);
       if (emailError != null) {
-        setErrors({'email': emailError});
+        setError('email', emailError);
         return false;
       }
       
-      await _authUseCases.resetPassword(email);
+      await _authUseCases.sendPasswordResetEmail(email);
       showMessage('重置密码邮件已发送');
       return true;
       
     } on AppException catch (e) {
-      showMessage(e.message, isError: true);
+      showError(e.message);
       return false;
     } catch (e) {
-      showMessage('发送重置密码邮件失败', isError: true);
+      showError('发送重置密码邮件失败');
       return false;
     } finally {
       setLoading(false);
@@ -262,13 +262,10 @@ class AuthController extends GetxController
   // 刷新认证令牌
   Future<bool> refreshToken() async {
     try {
-      final newToken = await _authUseCases.refreshToken();
-      if (newToken != null) {
-        _authToken.value = newToken;
-        await saveCacheString('auth_token', newToken);
-        return true;
-      }
-      return false;
+      final authResult = await _authUseCases.refreshToken();
+      _authToken.value = authResult.accessToken;
+      await cacheString('auth_token', authResult.accessToken);
+      return true;
     } catch (e) {
       // 刷新失败，清理认证状态
       _clearAuthState();
@@ -285,26 +282,28 @@ class AuthController extends GetxController
     try {
       setLoading(true);
       
-      final result = await _authUseCases.updateProfile(
+      final updateData = UpdateUserData(
         fullName: fullName,
         phone: phone,
         avatar: avatar,
       );
       
+      final updatedUser = await _authUseCases.updateProfile(updateData);
+      
       // 更新用户信息
-      _currentUser.value = result.user;
+      _currentUser.value = updatedUser;
       
       // 更新缓存
-      await _cacheAuthState(result);
+      await cacheJson('current_user', updatedUser.toJson());
       
       showMessage('个人资料更新成功');
       return true;
       
     } on AppException catch (e) {
-      showMessage(e.message, isError: true);
+      showError(e.message);
       return false;
     } catch (e) {
-      showMessage('更新失败，请重试', isError: true);
+      showError('更新失败，请重试');
       return false;
     } finally {
       setLoading(false);
@@ -328,23 +327,20 @@ class AuthController extends GetxController
       if (confirmPasswordError != null) errors['confirmPassword'] = confirmPasswordError;
       
       if (errors.isNotEmpty) {
-        setErrors(errors);
+        errors.forEach((field, message) => setError(field, message));
         return false;
       }
       
-      await _authUseCases.changePassword(
-        currentPassword: currentPassword,
-        newPassword: newPassword,
-      );
+      await _authUseCases.changePassword(currentPassword, newPassword);
       
       showMessage('密码修改成功');
       return true;
       
     } on AppException catch (e) {
-      showMessage(e.message, isError: true);
+      showError(e.message);
       return false;
     } catch (e) {
-      showMessage('密码修改失败', isError: true);
+      showError('密码修改失败');
       return false;
     } finally {
       setLoading(false);
@@ -379,14 +375,14 @@ class AuthController extends GetxController
         _avatarPath.value = pickedFile.path;
       }
     } catch (e) {
-      showMessage('选择头像失败', isError: true);
-    }
+    showError('选择头像失败');
+  }
   }
   
   // 注册方法 - 从表单数据注册
   Future<bool> register() async {
     if (!_agreeTerms.value) {
-      setErrors({'terms': '请同意用户协议和隐私政策'});
+      setError('terms', '请同意用户协议和隐私政策');
       return false;
     }
     
@@ -417,7 +413,7 @@ class AuthController extends GetxController
     _agreeTerms.value = false;
     _avatarPath.value = '';
     _avatarFile.value = null;
-    clearErrors();
+    clearAllErrors();
   }
   
   // 第三方登录方法
@@ -427,7 +423,7 @@ class AuthController extends GetxController
       // TODO: 实现Google登录逻辑
       showMessage('Google登录功能开发中');
     } catch (e) {
-      showMessage('Google登录失败', isError: true);
+      showError('Google登录失败');
     } finally {
       setLoading(false);
     }
@@ -439,7 +435,7 @@ class AuthController extends GetxController
       // TODO: 实现Apple登录逻辑
       showMessage('Apple登录功能开发中');
     } catch (e) {
-      showMessage('Apple登录失败', isError: true);
+      showError('Apple登录失败');
     } finally {
       setLoading(false);
     }
@@ -451,14 +447,14 @@ class AuthController extends GetxController
       // TODO: 实现生物识别登录逻辑
       showMessage('生物识别登录功能开发中');
     } catch (e) {
-      showMessage('生物识别登录失败', isError: true);
+      showError('生物识别登录失败');
     } finally {
       setLoading(false);
     }
   }
   
   // 忘记密码处理
-  void forgotPassword() {
+  void showForgotPasswordDialog() {
     Get.dialog(
       AlertDialog(
         title: const Text('重置密码'),
@@ -507,14 +503,14 @@ class AuthController extends GetxController
   
   // 完成首次启动设置
   Future<void> completeFirstLaunch() async {
-    await saveCacheBool('is_first_launch', false);
+    await cacheString('is_first_launch', 'false');
     _isFirstLaunch.value = false;
   }
   
   // 缓存认证状态
   Future<void> _cacheAuthState(dynamic result) async {
-    await saveCacheJson('current_user', result.user.toJson());
-    await saveCacheString('auth_token', result.accessToken);
+    await cacheJson('current_user', result.user.toJson());
+    await cacheString('auth_token', result.accessToken);
   }
   
   // 清除认证状态
@@ -532,27 +528,30 @@ class AuthController extends GetxController
   void _handleAuthError(dynamic error) {
     if (error is AuthException) {
       _clearAuthState();
-      showMessage(error.message, isError: true);
+      showError(error.message);
     } else {
-      showMessage('认证状态检查失败', isError: true);
+      showError('认证状态检查失败');
     }
   }
   
   // 验证方法
-  String? validatePassword(String? password) {
-    if (password.isNullOrEmpty) return '请输入密码';
-    if (password!.length < 6) return '密码至少6位字符';
+  @override
+  String? validatePassword(String? password, {int minLength = 6}) {
+    if (password?.isNullOrEmpty ?? true) return '请输入密码';
+    if (password!.length < minLength) return '密码至少$minLength位字符';
     return null;
   }
   
-  String? validateConfirmPassword(String password, String confirmPassword) {
-    if (confirmPassword.isNullOrEmpty) return '请确认密码';
+  @override
+  String? validateConfirmPassword(String? password, String? confirmPassword) {
+    if (confirmPassword?.isNullOrEmpty ?? true) return '请确认密码';
     if (password != confirmPassword) return '两次密码输入不一致';
     return null;
   }
   
-  String? validateRequired(String? value, String fieldName) {
-    if (value.isNullOrEmpty) return '请输入$fieldName';
+  @override
+  String? validateRequired(String? value, {String fieldName = '该字段'}) {
+    if (value?.isNullOrEmpty ?? true) return '请输入$fieldName';
     return null;
   }
 }

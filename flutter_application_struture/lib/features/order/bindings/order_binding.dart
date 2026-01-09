@@ -1,9 +1,11 @@
-import 'package:get/instance_manager.dart';
+import 'package:get/get.dart';
 import '../controllers/order_controller.dart';
 
-class OrderBinding extends Bindings {
+class OrderBinding extends Binding {
   @override
-  void dependencies() {
-    Get.lazyPut<OrderController>(() => OrderController());
+  List<Bind> dependencies() {
+    return [
+      Bind.lazyPut<OrderController>(() => OrderController()),
+    ];
   }
 }

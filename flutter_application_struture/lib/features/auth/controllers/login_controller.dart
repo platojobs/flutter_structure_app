@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import '../../../core/mixins/validation_mixin.dart';
 import '../../../core/mixins/loading_mixin.dart';
 import '../../../core/mixins/message_mixin.dart';
@@ -36,13 +35,13 @@ class LoginController extends GetxController
   // 更新邮箱
   void updateEmail(String email) {
     _email.value = email;
-    clearErrors();
+    clearAllErrors();
   }
   
   // 更新密码
   void updatePassword(String password) {
     _password.value = password;
-    clearErrors();
+    clearAllErrors();
   }
   
   // 切换记住我状态
@@ -59,23 +58,24 @@ class LoginController extends GetxController
   Future<bool> login() async {
     try {
       setLoading(true);
-      clearErrors();
+      clearAllErrors();
       
       // 输入验证
       final emailError = validateEmail(_email.value);
       final passwordError = validatePassword(_password.value);
       
-      final errors = <String, String>{};
-      if (emailError != null) errors['email'] = emailError;
-      if (passwordError != null) errors['password'] = passwordError;
+      if (emailError != null) {
+        setError('email', emailError);
+        return false;
+      }
       
-      if (errors.isNotEmpty) {
-        setErrors(errors);
+      if (passwordError != null) {
+        setError('password', passwordError);
         return false;
       }
       
       // 执行登录
-      final result = await _authUseCases.login(_email.value, _password.value);
+      await _authUseCases.login(_email.value, _password.value);
       
       // 如果选择记住我，保存登录状态
       if (_rememberMe.value) {
@@ -83,14 +83,14 @@ class LoginController extends GetxController
         // 这里可以存储到安全存储中
       }
       
-      showMessage('登录成功', isError: false);
+      showSuccess('登录成功');
       return true;
       
     } on AppException catch (e) {
-      showMessage(e.message, isError: true);
+      showError(e.message);
       return false;
     } catch (e) {
-      showMessage('登录失败，请重试', isError: true);
+      showError('登录失败，请重试');
       return false;
     } finally {
       setLoading(false);
@@ -100,13 +100,13 @@ class LoginController extends GetxController
   // 忘记密码
   void forgotPassword() {
     if (_email.value.isEmpty) {
-      showMessage('请先输入邮箱地址', isError: true);
+      showError('请先输入邮箱地址');
       return;
     }
     
     final emailError = validateEmail(_email.value);
     if (emailError != null) {
-      setErrors({'email': emailError});
+      setError('email', emailError);
       return;
     }
     
@@ -124,10 +124,10 @@ class LoginController extends GetxController
     try {
       setLoading(true);
       // TODO: 实现Google登录逻辑
-      showMessage('Google登录功能待实现', isError: false);
+      showMessage('Google登录功能待实现');
       return false;
     } catch (e) {
-      showMessage('Google登录失败', isError: true);
+      showError('Google登录失败');
       return false;
     } finally {
       setLoading(false);
@@ -139,10 +139,10 @@ class LoginController extends GetxController
     try {
       setLoading(true);
       // TODO: 实现Apple登录逻辑
-      showMessage('Apple登录功能待实现', isError: false);
+      showMessage('Apple登录功能待实现');
       return false;
     } catch (e) {
-      showMessage('Apple登录失败', isError: true);
+      showError('Apple登录失败');
       return false;
     } finally {
       setLoading(false);
@@ -154,10 +154,10 @@ class LoginController extends GetxController
     try {
       setLoading(true);
       // TODO: 实现生物识别登录逻辑
-      showMessage('生物识别登录功能待实现', isError: false);
+      showMessage('生物识别登录功能待实现');
       return false;
     } catch (e) {
-      showMessage('生物识别登录失败', isError: true);
+      showError('生物识别登录失败');
       return false;
     } finally {
       setLoading(false);
@@ -169,10 +169,10 @@ class LoginController extends GetxController
     try {
       setLoading(true);
       // TODO: 实现游客登录逻辑
-      showMessage('游客登录功能待实现', isError: false);
+      showMessage('游客登录功能待实现');
       return false;
     } catch (e) {
-      showMessage('游客登录失败', isError: true);
+      showError('游客登录失败');
       return false;
     } finally {
       setLoading(false);
@@ -184,10 +184,11 @@ class LoginController extends GetxController
     _email.value = '';
     _password.value = '';
     _rememberMe.value = false;
-    clearErrors();
+    clearAllErrors();
   }
   
   // 验证方法
+  @override
   String? validateEmail(String? email) {
     if (email.isNullOrEmpty) return '请输入邮箱地址';
     if (!email!.isValidEmail) return '请输入有效的邮箱地址';

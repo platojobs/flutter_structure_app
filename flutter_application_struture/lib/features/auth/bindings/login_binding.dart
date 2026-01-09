@@ -1,12 +1,14 @@
-import 'package:get/instance_manager.dart';
+import 'package:get/get.dart';
 import '../controllers/login_controller.dart';
 
-class LoginBinding extends Bindings {
+class LoginBinding extends Binding {
   @override
-  void dependencies() {
-    // 登录控制器
-    Get.lazyPut<LoginController>(() => LoginController(
-      authUseCases: Get.find(),
-    ));
+  List<Bind> dependencies() {
+    return [
+      // 登录控制器
+      Bind.lazyPut<LoginController>(() => LoginController(
+        authUseCases: Get.find(),
+      )),
+    ];
   }
 }
