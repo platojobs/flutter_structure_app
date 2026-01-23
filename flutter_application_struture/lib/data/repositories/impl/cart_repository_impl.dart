@@ -21,7 +21,7 @@ class CartRepositoryImpl implements CartRepository {
       // 先尝试从缓存获取
       final cachedCart = await _cacheManager.getCart(userId);
       if (cachedCart != null) {
-        return cachedCart;
+        return cachedCart.toEntity();
       }
 
       // 缓存中没有，从API获取
@@ -65,7 +65,7 @@ class CartRepositoryImpl implements CartRepository {
           
           final updatedCart = existingCart.copyWith(
             items: updatedItems,
-            totalAmount: updatedItems.fold(0.0, (sum, i) => sum + i.totalPrice),
+            totalAmount: updatedItems.fold(0.0, (sum, i) => (sum ?? 0.0) + i.totalPrice),
             updatedAt: DateTime.now(),
           );
           
@@ -76,7 +76,7 @@ class CartRepositoryImpl implements CartRepository {
           final newItems = [...existingCart.items, item];
           final updatedCart = existingCart.copyWith(
             items: newItems,
-            totalAmount: newItems.fold(0.0, (sum, i) => sum + i.totalPrice),
+            totalAmount: newItems.fold(0.0, (sum, i) => (sum ?? 0.0) + i.totalPrice),
             updatedAt: DateTime.now(),
           );
           
@@ -141,7 +141,7 @@ class CartRepositoryImpl implements CartRepository {
       
       final updatedCart = cart.copyWith(
         items: updatedItems,
-        totalAmount: updatedItems.fold(0.0, (sum, i) => sum + i.totalPrice),
+        totalAmount: updatedItems.fold(0.0, (sum, i) => (sum ?? 0.0) + i.totalPrice),
         updatedAt: DateTime.now(),
       );
       
@@ -153,10 +153,10 @@ class CartRepositoryImpl implements CartRepository {
       
       // 返回更新后的项（如果数量大于0）
       if (quantity > 0) {
-        return updatedItems[itemIndex].toEntity();
+        return updatedItems[itemIndex];
       } else {
         // 如果数量为0，返回原始项（已从购物车移除）
-        return cart.items[itemIndex].toEntity();
+        return cart.items[itemIndex];
       }
     } catch (e) {
       // 出错时尝试从服务器获取最新数据
@@ -173,12 +173,11 @@ class CartRepositoryImpl implements CartRepository {
       }
       
       // 查找并移除商品
-      final itemToRemove = cart.items.firstWhere((i) => i.id == itemId);
       final updatedItems = cart.items.where((i) => i.id != itemId).toList();
       
       final updatedCart = cart.copyWith(
         items: updatedItems,
-        totalAmount: updatedItems.fold(0.0, (sum, i) => sum + i.totalPrice),
+        totalAmount: updatedItems.fold(0.0, (sum, i) => (sum ?? 0.0) + i.totalPrice),
         updatedAt: DateTime.now(),
       );
       
